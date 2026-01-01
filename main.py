@@ -17,7 +17,7 @@ DB_CONFIG = {
     "port": 5432,
 }
 
-DATA_URL = "http://www.uhu.es/jluis.dominguez/AGI/pueblosHuelva.txt"
+DATA_URL = ""
 
 # Función para cargar los datos en la base de datos
 def cargar_datos():
@@ -53,83 +53,6 @@ def cargar_datos():
     finally:
         cursor.close()
         conn.close()
-'''
-# Función para mostrar los datos en un mapa interactivo
-def mostrar_datos(altura_minima, frame_mapa):
-    try:
-        conn = psycopg2.connect(**DB_CONFIG)
-        cursor = conn.cursor()
-
-        # Filtrar municipios según la altura mínima
-        if altura_minima:
-            cursor.execute("""
-                SELECT municipio, coord_x, coord_y, altura 
-                FROM pueblosHuelva 
-                WHERE altura > %s;
-            """, (float(altura_minima),))
-        else:
-            cursor.execute("SELECT municipio, coord_x, coord_y, altura FROM pueblosHuelva;")
-
-        municipios = cursor.fetchall()
-        if not municipios:
-            messagebox.showinfo("Sin datos", "No hay municipios que cumplan con el criterio de altura mínima.")
-            return
-
-        # Convertir coordenadas de UTM a lat/lon
-        transformer = Transformer.from_crs("epsg:25830", "epsg:4326")  # UTM a lat/lon
-        coordenadas_latlon = [transformer.transform(x, y) for _, x, y, _ in municipios]
-
-        # Configurar el mapa en tkintermapview
-        for widget in frame_mapa.winfo_children():
-            widget.destroy()
-
-        mapa = TkinterMapView(frame_mapa, width=800, height=600, corner_radius=0)
-        mapa.pack(fill=tk.BOTH, expand=True)
-
-        # Centrar el mapa en las coordenadas de los municipios
-        latitudes, longitudes = zip(*coordenadas_latlon)
-        lat_centro, lon_centro = sum(latitudes) / len(latitudes), sum(longitudes) / len(longitudes)
-        mapa.set_position(lat_centro, lon_centro)
-        mapa.set_zoom(10)
-
-        # Agregar marcadores en el mapa
-        for (municipio, _, _, altura), (lat, lon) in zip(municipios, coordenadas_latlon):
-            mapa.set_marker(lat, lon, text=f"{municipio}\nAltura: {altura} m")
-
-    except Exception as e:
-        messagebox.showerror("Error", f"No se pudo mostrar el mapa: {e}")
-    finally:
-        cursor.close()
-        conn.close()
-
-# Crear la interfaz gráfica
-def crear_interfaz():
-    ventana = tk.Tk()
-    ventana.title("Mapa de Municipios de Huelva")
-    ventana.geometry("900x700")
-    ventana.resizable(True, True)
-
-    # Frame para los controles superiores
-    frame_superior = tk.Frame(ventana)
-    frame_superior.pack(side=tk.TOP, fill=tk.X, pady=10)
-
-    tk.Label(frame_superior, text="Altura mínima (metros):", font=("Arial", 12)).pack(side=tk.LEFT, padx=10)
-    entrada_altura = tk.Entry(frame_superior, font=("Arial", 12))
-    entrada_altura.pack(side=tk.LEFT, padx=10)
-
-    tk.Button(frame_superior, text="Cargar datos", command=cargar_datos, width=20).pack(side=tk.LEFT, padx=10)
-
-    frame_mapa = tk.Frame(ventana)
-    frame_mapa.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
-
-    tk.Button(frame_superior, text="Mostrar datos", command=lambda: mostrar_datos(entrada_altura.get(), frame_mapa), width=20).pack(side=tk.LEFT, padx=10)
-    ventana.mainloop()
-
-# Ejecutar la interfaz
-if __name__ == "__main__":
-    crear_interfaz()
-'''
-
 
 # Función para mostrar los datos en un mapa
 def mostrar_datos(altura_minima):
